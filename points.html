@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Points Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+    rel="stylesheet"
+  >
+  <style>
+    body { padding: 20px; }
+    th, td { text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2 class="text-center mb-4">Game Points Tracker</h2>
+
+    <!-- Add player -->
+    <div class="input-group mb-3">
+      <input type="text" id="playerName" class="form-control" placeholder="Enter Player Name">
+      <button class="btn btn-primary" onclick="addPlayer()">Add Player</button>
+    </div>
+
+    <!-- Add round -->
+    <div id="roundInputs" class="mb-3 d-none">
+      <h5>Enter Points for Each Player</h5>
+      <div id="roundForm" class="row g-2"></div>
+      <button class="btn btn-success mt-2" onclick="addRound()">Submit Round</button>
+    </div>
+
+    <!-- Table -->
+    <table class="table table-bordered mt-4">
+      <thead id="pointsHeader"></thead>
+      <tbody id="pointsBody"></tbody>
+    </table>
+
+    <button class="btn btn-danger mt-3" onclick="endGame()">Game Over</button>
+  </div>
+
+  <script>
+    const players = [];
+    const rounds = [];
+
+    function addPlayer() {
+      const nameInput = document.getElementById('playerName');
+      const name = nameInput.value.trim();
+      if (!name || players.includes(name)) return;
+
+      players.push(name);
+      nameInput.value = '';
+      document.getElementById('roundInputs').classList.remove('d-none');
+      updateRoundForm();
+      updateTable();
+    }
+
+    function updateRoundForm() {
+      const form = document.getElementById('roundForm');
+      form.innerHTML = '';
+      players.forEach(player => {
+        const div = document.createElement('div');
+        div.className = 'col';
+        div.innerHTML = `
+          <label>${player}</label>
+          <input type="number" class="form-control" id="score-${player}" value="0">
+        `;
+        form.appendChild(div);
+      });
+    }
+
+    function addRound() {
+      const round = {};
+      players.forEach(player => {
+        const val = parseInt(document.getElementById(`score-${player}`).value) || 0;
+        round[player] = val;
+      });
+      rounds.push(round);
+      updateTable();
+    }
+
+    function updateTable() {
+      const header = document.getElementById('pointsHeader');
+      const body = document.getElementById('pointsBody');
+
+      header.innerHTML = `
+        <tr>
+          <th>Round</th>
+          ${players.map(p => `<th>${p}</th>`).join('')}
+        </tr>
+      `;
+
+      body.innerHTML = rounds.map((round, i) => `
+        <tr>
+          <td>Round ${i + 1}</td>
+          ${players.map(p => `<td>${round[p]}</td>`).join('')}
+        </tr>
+      `).join('');
+    }
+
+    function endGame() {
+      if (players.length === 0 || rounds.length === 0) return;
+
+      const totals = {};
+      players.forEach(p => totals[p] = 0);
+
+      rounds.forEach(round => {
+        players.forEach(p => {
+          totals[p] += round[p];
+        });
+      });
+
+      const body = document.getElementById('pointsBody');
+      const row = document.createElement('tr');
+      row.className = 'table-success fw-bold';
+      row.innerHTML = `
+        <td>Total</td>
+        ${players.map(p => `<td>${totals[p]}</td>`).join('')}
+      `;
+      body.appendChild(row);
+    }
+  </script>
+</body>
+</html>
